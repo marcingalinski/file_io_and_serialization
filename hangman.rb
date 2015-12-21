@@ -50,7 +50,12 @@ class Game
 	end
 
 	def clean_input
-		gets.chomp.downcase
+		begin
+			gets.chomp.downcase.match(/[a-z]/)[0]
+		rescue
+			puts "Please input a letter!"
+			retry
+		end
 	end
 
 	def check guess
