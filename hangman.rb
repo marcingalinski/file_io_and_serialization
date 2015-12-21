@@ -1,3 +1,5 @@
+require 'yaml'
+
 class Game
 	def initialize
 		@word = find_word.split('')
@@ -13,6 +15,20 @@ class Game
 		greet
 		make_turn until @won || @lost
 		give_result
+	end
+
+	def self.load
+		begin
+			game = File.open('save.yaml', 'r') { |file| YAML::load file }
+			game.ended ? self.new : game.play
+		rescue
+			puts "No game has been saved yet!"
+			game = self.new
+		end	
+	end
+
+	def ended
+		@won || @lost
 	end
 
 	private
@@ -36,6 +52,7 @@ class Game
 		guess = take_guess
 		check guess
 		check_status
+		save
 	end
 
 	def take_guess
@@ -77,10 +94,18 @@ class Game
 		@lost = true if @tried.size >= 7
 	end
 
+	def save
+		serialized = YAML::dump self
+		File.open('save.yaml', 'w') { |file| file.write serialized }
+	end
+
 	def give_result
 		puts "The word is '#{@word}'. You won!" if @won
 		puts "You lost! The word was '#{@word}'." if @lost
 	end
 end
 
-Game.new
+puts "Press 'l' and Enter, if you'd like to load previous game."
+puts "Press Enter to start new game"
+input = gets.chomp
+input == 'l' ? Game.load : Game.new
